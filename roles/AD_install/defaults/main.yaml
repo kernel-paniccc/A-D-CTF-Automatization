@@ -1,0 +1,14 @@
+---
+base_utils:
+  - curl
+  - iptables
+  - sudo
+  - net-tools
+  - glances
+  - fastfetch
+  - docker.io
+  - docker-compose
+  - git
+  - expect
+install_firegex: true
+firegex_password: "firegex123"

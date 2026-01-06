@@ -1,22 +1,113 @@
-- name: Install python3
-  ansible.builtin.raw: |
-    set -e
-    apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-venv python3-pip
-  register: bootstrap_python
-  changed_when: bootstrap_python.rc == 0 and 'Setting up python3' in (bootstrap_python.stdout | default(''))
-  failed_when: bootstrap_python.rc != 0
+---
+# Basic runtime dependencies
+- name: Ensure python3 present (skip if already installed)
   become: true
-
-- name: Install utils
   ansible.builtin.apt:
     name:
-      - curl
-      - iptables
-      - docker.io
-      - docker-compose
-      - net-tools
-      - glances
-      - fastfetch
+      - python3
+      - python3-apt
+    state: present
     update_cache: true
+    force_apt_get: true
+  register: py_pkgs
+  retries: 3
+  delay: 5
+  until: py_pkgs is succeeded
+  failed_when: false
+
+- name: Install utils (with docker)
   become: true
+  ansible.builtin.apt:
+    name: "{{ base_utils }}"
+    state: present
+    update_cache: true
+    force_apt_get: true
+  register: utils_pkgs
+  retries: 3
+  delay: 5
+  until: utils_pkgs is succeeded
+
+# Firegex setup (standalone mode, non-interactive)
+- name: Stop firegex standalone if running
+  become: true
+  ansible.builtin.shell: |
+    set -e
+    if [ -f /root/firegex.py ]; then
+      python3 /root/firegex.py stop --standalone || true
+    fi
+  args:
+    executable: /bin/bash
+  when: install_firegex | bool
+
+- name: Unmount firegex bind mounts if present
+  become: true
+  ansible.builtin.shell: |
+    set -e
+    if mount | grep -q '/root/firegexfs'; then
+      mount | awk '$3 ~ "^/root/firegexfs" {print length($3), $3}' | sort -nr | cut -d" " -f2- | while read m; do
+        umount -l "$m" || true
+      done
+    fi
+  args:
+    executable: /bin/bash
+  when: install_firegex | bool
+
+- name: Clean previous firegex install artifacts
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /root/firegexfs
+    - /opt/firegex
+    - /root/firegex.py
+  when: install_firegex | bool
+
+- name: Download firegex installer
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ firegex_repo_url }}"
+    dest: /tmp/firegex.sh
+    mode: '0755'
+  when: install_firegex | bool
+
+- name: Install firegex (standalone, non-interactive)
+  become: true
+  ansible.builtin.shell: |
+    set -e
+    LOGFILE=/var/log/firegex-install.log
+    : > "$LOGFILE"
+    /usr/bin/expect <<'EOF' | tee -a "$LOGFILE"
+    set timeout -1
+    set pass "{{ firegex_password }}"
+    spawn sh /tmp/firegex.sh --standalone
+    expect "Insert a password for firegex:"
+    send "$pass\r"
+    expect "Confirm the password:"
+    send "$pass\r"
+    expect eof
+    EOF
+  args:
+    executable: /bin/bash
+  when: install_firegex | bool
+
+- name: Check firegex status
+  become: true
+  ansible.builtin.shell: |
+    set -e
+    if [ -f /root/firegex.py ]; then
+      python3 /root/firegex.py status --standalone
+    else
+      exit 1
+    fi
+  args:
+    executable: /bin/bash
+  register: firegex_status
+  changed_when: false
+  failed_when: firegex_status.rc != 0
+  when: install_firegex | bool
+
+- name: Show firegex status output
+  ansible.builtin.debug:
+    msg: "{{ firegex_status.stdout_lines | default([]) }}"
+  when: install_firegex | bool

@@ -6,6 +6,5 @@
 
   roles:
     - name: AD_install
-      install_firegex: false
-      use_kali_repo: false
-      install_docker: true
+      install_firegex: true
+      firegex_password: "firegex123"
