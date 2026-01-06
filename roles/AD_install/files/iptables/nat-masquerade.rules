@@ -1,0 +1,19 @@
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+
+# Masquerade outbound traffic from eth0 (change interface if needed)
+-A POSTROUTING -o eth0 -j MASQUERADE
+COMMIT
+
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+# Accept forwarding for established traffic
+-A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A FORWARD -i eth0 -o eth0 -j ACCEPT
+COMMIT

@@ -1,0 +1,32 @@
+---
+- name: Apply iptables ruleset
+  hosts: ctf
+  become: true
+  vars:
+    iptables_rules_src: "roles/AD_install/files/iptables/basic-allow-ssh.rules"
+    iptables_rules_dest: "/etc/iptables/rules.v4"
+  tasks:
+    - name: Ensure iptables-persistent helpers are present
+      ansible.builtin.apt:
+        name:
+          - iptables
+          - iptables-persistent
+        state: present
+        update_cache: true
+        force_apt_get: true
+
+    - name: Deploy iptables rules file
+      ansible.builtin.copy:
+        src: "{{ iptables_rules_src }}"
+        dest: "{{ iptables_rules_dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Apply rules via iptables-restore
+      ansible.builtin.command: iptables-restore "{{ iptables_rules_dest }}"
+      notify: Save iptables rules
+
+  handlers:
+    - name: Save iptables rules
+      ansible.builtin.command: netfilter-persistent save

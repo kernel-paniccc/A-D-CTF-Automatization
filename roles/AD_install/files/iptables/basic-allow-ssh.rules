@@ -1,0 +1,19 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+
+# Allow loopback
+-A INPUT -i lo -j ACCEPT
+
+# Allow established and related
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Allow SSH from anywhere (change port if needed)
+-A INPUT -p tcp --dport 22 -j ACCEPT
+
+# Optional: allow ICMP echo
+-A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+
+# Drop everything else (default policy)
+COMMIT

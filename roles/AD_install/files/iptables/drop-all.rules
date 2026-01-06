@@ -1,0 +1,15 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+
+# Allow loopback
+-A INPUT -i lo -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+
+# Allow established and related
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Everything else is dropped by default policies
+COMMIT

@@ -27,6 +27,32 @@
   delay: 5
   until: utils_pkgs is succeeded
 
+# Optional iptables rules deployment
+- name: Install iptables-persistent
+  become: true
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+    update_cache: false
+    force_apt_get: true
+  when: iptables_apply | bool
+
+- name: Deploy iptables rules file
+  become: true
+  ansible.builtin.copy:
+    src: "iptables/{{ iptables_ruleset }}"
+    dest: /etc/iptables/rules.v4
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Save iptables rules
+  when: iptables_apply | bool
+
+- name: Apply iptables rules via iptables-restore
+  become: true
+  ansible.builtin.command: iptables-restore /etc/iptables/rules.v4
+  when: iptables_apply | bool
+
 # Firegex setup (standalone mode, non-interactive)
 - name: Stop firegex standalone if running
   become: true

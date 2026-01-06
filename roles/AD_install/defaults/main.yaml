@@ -12,3 +12,5 @@ base_utils:
   - expect
 install_firegex: true
 firegex_password: "firegex123"
+iptables_apply: true
+iptables_ruleset: basic-allow-ssh.rules
