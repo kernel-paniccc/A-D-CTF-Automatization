@@ -1,0 +1,24 @@
+---
+- name: Generate SSH key locally and push pubkey to targets
+  hosts: ctf
+  gather_facts: false
+  vars:
+    ssh_key_name: ctf_lab_id_rsa
+    ssh_key_dir: "{{ lookup('env','HOME') }}/.ssh"
+    ssh_key_path: "{{ ssh_key_dir }}/{{ ssh_key_name }}"
+  tasks:
+    - name: Ensure local SSH key pair exists
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.openssh_keypair:
+        path: "{{ ssh_key_path }}"
+        type: rsa
+        size: 4096
+        state: present
+        mode: '0600'
+
+    - name: Push public key to remote authorized_keys
+      ansible.builtin.authorized_key:
+        user: "{{ ansible_user | default('root') }}"
+        key: "{{ lookup('file', ssh_key_path ~ '.pub') }}"
+        state: present
