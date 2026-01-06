@@ -10,7 +10,7 @@ A/D CTF automatization pipelines
 - `docker-compose.yml`: два Kali‑контейнера с SSH (ctf1, ctf2), проброшены 5001/5002.
 - `start_ctf_network.sh`: сборка/подъём сетки, вывод SSH‑подсказок.
 - `roles/AD_install`: ставит базовые утилиты (docker, git, expect и др.), Python, опционально iptables‑правила и Firegex в standalone.
-- `inventory.yaml`: инвентарь Ansible, ctf1 доступен по 127.0.0.1:5001 (root/root).
+- `inventory.yaml`: инвентарь Ansible
 
 Поднять контейнеры
 ```
@@ -20,9 +20,9 @@ ansible-playbook -i inventory.yaml AD_role.yaml
 ansible-playbook -i inventory.yaml ssh-key-deploy.yaml   # развернуть SSH-ключи без пароля
 ```
 
-- `install_firegex`: true|false — ставить ли Firegex (standalone).
-- `firegex_password`: пароль, который expect подсовывает инсталлятору.
-- `iptables_apply`: true|false — применять ли встроенные iptables‑правила.
-- `iptables_ruleset`: один из `basic-allow-ssh.rules`, `nat-masquerade.rules`, `drop-all.rules`.
+- `install_firegex`: true|false - ставить ли Firegex (standalone).
+- `firegex_password`: пароль для firegex
+- `iptables_apply`: true|false - применять ли встроенные iptables‑правила.
+- `iptables_ruleset`: поставить шаблон правил
 
 ![alt text](network.png)
