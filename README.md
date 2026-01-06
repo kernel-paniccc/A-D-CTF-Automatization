@@ -1,5 +1,9 @@
 A/D CTF automatization pipelines
-==============
+---
+
+![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat&logo=ansible&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![iptables](https://img.shields.io/badge/iptables-security-blue)
 
 Данный репозиторий представляет собой тестовую сеть из демо хостов в которой, с помощью Ansible Role, разворачивается связка (IPtablse + Firegex + SSH-keygen) для мониторинга и управления сетевыми подключениями.
 
