@@ -1,0 +1,11 @@
+---
+- name: AD base utils
+  hosts: ctf
+  gather_facts: false
+  become: true
+
+  roles:
+    - name: AD_install
+      install_firegex: false
+      use_kali_repo: false
+      install_docker: true

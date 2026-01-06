@@ -1,0 +1,22 @@
+- name: Install python3
+  ansible.builtin.raw: |
+    set -e
+    apt-get update
+    DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-venv python3-pip
+  register: bootstrap_python
+  changed_when: bootstrap_python.rc == 0 and 'Setting up python3' in (bootstrap_python.stdout | default(''))
+  failed_when: bootstrap_python.rc != 0
+  become: true
+
+- name: Install utils
+  ansible.builtin.apt:
+    name:
+      - curl
+      - iptables
+      - docker.io
+      - docker-compose
+      - net-tools
+      - glances
+      - fastfetch
+    update_cache: true
+  become: true
